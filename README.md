@@ -16,9 +16,9 @@ Self-hosted · Bring your own AI key · MIT licensed
 
 ## Demo
 
-https://github.com/user-attachments/assets/REPLACE-WITH-UPLOADED-VIDEO-ID
+[![Watch the demo](docs/screenshots/desktop-08-stylist-outfits.png)](https://github.com/suraj-singh-sde/kya-pehnu/blob/main/docs/demo/kyapehnu-demo.mp4)
 
-> The same clip is in the repo: [`docs/demo/kyapehnu-demo.mp4`](docs/demo/kyapehnu-demo.mp4).
+**[▶ Watch the demo video](https://github.com/suraj-singh-sde/kya-pehnu/blob/main/docs/demo/kyapehnu-demo.mp4)**: sign in, open the almirah, ask the stylist, get outfits on a mannequin (about a minute, includes the live AI wait).
 
 | Almirah | Stylist chat | Outfits on a mannequin |
 |---|---|---|
