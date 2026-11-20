@@ -1,0 +1,25 @@
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  # Runs no repository or dependency code, only grep and the GitHub CLI: the stack is built from source, so a release
+  # carries notes and no files.
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: The tag matches the package version
+        run: grep -q "^version = \"${GITHUB_REF_NAME#v}\"$" services/backend/pyproject.toml
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes

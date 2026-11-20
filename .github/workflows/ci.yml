@@ -1,0 +1,163 @@
+name: ci
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  # Linux runs everything: slow tests, the coverage gate and the integration tests against a real Valkey.
+  backend-linux:
+    runs-on: ubuntu-latest
+    services:
+      valkey:
+        image: valkey/valkey:8.1.10-alpine@sha256:081c2f5cb575efc901aa80ff9cdbd1ec6a301682fd35e1ebb4b0990a4a4a8507
+        ports: ["127.0.0.1:6379:6379"]
+        options: --health-cmd "valkey-cli ping" --health-interval 2s --health-retries 15
+    env:
+      KYAPEHNU_TEST_VALKEY_URL: redis://127.0.0.1:6379
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - name: Install the backend (the runtime tree plus dev tools, no HEIC extra)
+        working-directory: services/backend
+        run: uv sync --locked
+      - name: Lint
+        working-directory: services/backend
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Typecheck
+        working-directory: services/backend
+        run: uv run mypy --strict kyapehnu
+      - name: Backend tests (network blocked, coverage gate)
+        working-directory: services/backend
+        run: uv run pytest -n auto --allow-hosts=127.0.0.1,::1 -m "not live" --cov=kyapehnu --cov-fail-under=80
+      - name: Load test, alone (parallel test workers would take its CPU and spoil the timing)
+        working-directory: services/backend
+        run: uv run pytest -n0 --no-cov --allow-hosts=127.0.0.1,::1 tests/test_load_slow.py
+      - name: Python dependency audit
+        working-directory: services/backend
+        run: uv run pip-audit --skip-editable
+
+  # macOS and Windows run the unit tests only: integration tests skip visibly without a Valkey.
+  backend-unit:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - name: Install the backend
+        working-directory: services/backend
+        run: uv sync --locked
+      - name: Lint
+        working-directory: services/backend
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+      - name: Typecheck
+        working-directory: services/backend
+        run: uv run mypy --strict kyapehnu
+      - name: Backend unit tests (network blocked)
+        working-directory: services/backend
+        run: uv run pytest -n auto -m "not slow and not live" --allow-hosts=127.0.0.1,::1
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: services/frontend/package-lock.json
+      - name: Typecheck and build
+        working-directory: services/frontend
+        run: |
+          npm ci
+          npm run build
+      - name: The build calls the API by relative paths, and no folder-import screen is left
+        working-directory: services/frontend
+        run: |
+          if grep -rEq 'https?://[^"[:space:]]*/(api|images)/' dist/assets; then
+            echo "an absolute API or image URL is in dist/assets"; exit 1
+          fi
+          if grep -rq "ingest/folder" src; then
+            echo "src still mentions ingest/folder"; exit 1
+          fi
+      - name: "npm dependency audit (production, then all: vite runs as a network server in `make dev`)"
+        working-directory: services/frontend
+        run: |
+          npm audit --audit-level=high --omit=dev
+          npm audit --audit-level=high
+      - name: Install the backend (the API types are generated from it)
+        working-directory: services/backend
+        run: uv sync --locked
+      - name: API types are up to date
+        working-directory: services/frontend
+        run: |
+          npm run gen:api
+          git diff --exit-code openapi.json src/api/types.ts
+
+  licenses:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: lts/*
+          cache: npm
+          cache-dependency-path: services/frontend/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: services/frontend
+        run: npm ci
+      - name: License allow-lists on the runtime tree, without pillow-heif
+        run: make licenses
+
+  # Builds the three images, starts the stack with a throwaway Valkey password and fake Google client values, and runs
+  # the smoke script against it (needs internet: the login step fetches Google's discovery document).
+  compose-smoke:
+    needs: [backend-linux, backend-unit, frontend, licenses]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - name: Write .env
+        run: |
+          {
+            echo "KYAPEHNU_VALKEY_PASSWORD=$(openssl rand -hex 32)"
+            echo "KYAPEHNU_GOOGLE_CLIENT_ID=smoke-client-id.apps.googleusercontent.com"
+            echo "KYAPEHNU_GOOGLE_CLIENT_SECRET=smoke-client-secret"
+          } > .env
+      - name: Docker Compose is 2.23 or newer
+        run: |
+          docker compose version
+          docker compose version --short | awk -F. '{ exit !($1 > 2 || ($1 == 2 && $2 >= 23)) }'
+      - name: Build and start the stack
+        run: docker compose up -d --build --wait
+      - name: Smoke test
+        run: scripts/compose-smoke.sh
+      - name: Collect the logs
+        if: always()
+        run: docker compose logs > smoke-logs.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: success() || failure()
+        with:
+          name: smoke-logs
+          path: smoke-logs.txt
+      - name: Remove the stack and its data volume
+        if: always()
+        run: docker compose down -v

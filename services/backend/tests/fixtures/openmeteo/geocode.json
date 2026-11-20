@@ -1,0 +1,26 @@
+{
+ "results": [
+  {
+   "id": 1,
+   "name": "Gurugram",
+   "latitude": 28.4595,
+   "longitude": 77.0266,
+   "elevation": 217.0,
+   "feature_code": "PPLA2",
+   "country_code": "IN",
+   "timezone": "Asia/Kolkata",
+   "population": 876900,
+   "country": "India",
+   "admin1": "Haryana"
+  },
+  {
+   "id": 2,
+   "name": "Gurugram",
+   "latitude": 12.5,
+   "longitude": 70.1,
+   "timezone": "Asia/Dhaka",
+   "country": "Elsewhere"
+  }
+ ],
+ "generationtime_ms": 0.9
+}

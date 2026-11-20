@@ -1,0 +1,66 @@
+# Copy to config.yaml and edit. Every key is optional; these are the defaults.
+region: IN            # region preset (retailers, currency) used from Phase 4
+home_city: Gurugram
+currency: INR
+
+ingest:
+  min_bbox_area: 0.02   # ignore detected garments smaller than 2% of the photo
+  bbox_padding: 0.05    # pad crops by 5% on each side
+  main_item_only: worn       # worn | always | never: keep only the item a photo is mainly showing (worn = photos of a person)
+  auto_clean_pictures: true  # OpenAI only: make a clean picture of every uploaded garment (one image generation each)
+
+dedupe:
+  llm_confidence: 0.7      # only warn about a duplicate when the LLM is at least this sure
+  item_phash_distance: 6   # perceptual-hash distance that counts as "near-identical image"
+  photo_phash_distance: 4  # same photo uploaded again
+  max_delta_e: 15          # how close a primary color must be to consider an item a candidate
+
+profile:                # defaults for a new profile (edit later in Settings)
+  budget_min: 1000
+  budget_max: 5000
+
+outfits:                # outfit suggestions
+  weights:              # how much each part counts in the score; relative, scaled to sum to 1
+    colour: 0.25
+    pattern: 0.10
+    formality: 0.20
+    weather: 0.20
+    repetition: 0.20
+    forgotten: 0.05
+    preference: 0.10    # how much your thumbs up and down count
+  per_slot: 8           # best items kept per slot before combining (1 to 20)
+  max_candidates: 300   # outfits scored per request (1 to 1000)
+  mannequin: auto       # picture of each suggested outfit on a mannequin: auto, button or off (needs OpenAI)
+  formality:            # acceptable item formality [low, high], 1 to 5, per event type
+    gym: [1, 1]
+    casual: [1, 3]
+    travel: [1, 3]
+    date: [2, 4]
+    party: [2, 4]
+    festival: [3, 5]
+    office: [3, 4]
+    interview: [4, 5]
+    wedding: [4, 5]
+
+repetition:             # how soon a repeat is penalised
+  half_life_days: 14        # a wear counts half as much after this many days
+  outfit_window_days: 30    # the same outfit again within this window is penalised
+  audience_window_days: 90  # the same outfit in front of the same people within this window is penalised
+  forgotten_days: 60        # an item not worn for this long counts as forgotten
+
+weather:                # Open-Meteo; used to pick warmth and warn about rain, sun, air and wind
+  bands:                # first match wins: from_c is the feels-like midpoint (deg C) the band starts at; the last band has no from_c
+    - {from_c: 30, warmth_min: 1, warmth_max: 2, layer: none}      # layer: none | optional | wanted
+    - {from_c: 24, warmth_min: 1, warmth_max: 3, layer: none}
+    - {from_c: 18, warmth_min: 2, warmth_max: 4, layer: optional}
+    - {from_c: 10, warmth_min: 3, warmth_max: 5, layer: wanted}
+    - {warmth_min: 4, warmth_max: 5, layer: wanted}
+  humid_pct: 70                 # hot and humid when humidity is at least this ...
+  humid_feels_like_c: 28        # ... and the feels-like midpoint is at least this
+  humid_fabrics: [polyester, nylon, wool, leather, velvet]  # avoided when hot and humid
+  rain_probability_pct: 40      # rain likely above this
+  uv_index: 8                   # strong sun at or above this (outdoor events)
+  aqi: 200                      # poor air above this (outdoor events)
+  wind_kmh: 35                  # windy above this
+  not_rain_safe_words: [suede, canvas, satin, silk, velvet, mesh]  # footwear with these words is not rain-safe
+  default_event_hours: 3        # event length when no end time is given (1 to 24)

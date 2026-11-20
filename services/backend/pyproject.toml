@@ -1,0 +1,97 @@
+[project]
+name = "kyapehnu"
+version = "0.2.0"
+description = "Local-first personal styling agent"
+requires-python = ">=3.12,<3.14"
+license = "MIT"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "sqlmodel>=0.0.22",
+  "alembic>=1.13",
+  "pydantic-settings>=2.4",
+  "pyyaml>=6",
+  "python-multipart>=0.0.9",
+  "pillow>=13.0",
+  "numpy>=2.3",
+  "imagehash>=4.3",
+  "rembg[cpu]>=2.0.85",
+  "anthropic>=0.40",
+  "openai>=1.50",
+  "httpx>=0.27",
+  "httpx2>=2.13,<3",  # authlib 1.8 talks through it; its errors are not httpx errors (auth/api.py catches both)
+  "redis>=5.2,<8",
+  "authlib>=1.8,<2",
+  "itsdangerous>=2.2",
+  "limits[redis]>=5.8,<6",
+  "joserfc>=1.6.1,<2",
+  "boto3>=1.36,<2",
+]
+
+[project.optional-dependencies]
+# pillow-heif bundles LGPL/GPL codecs: opt-in only, never a core dependency (governance.md).
+heic = ["pillow-heif>=0.18"]
+
+[project.scripts]
+kyapehnu = "kyapehnu.core.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "types-PyYAML",
+  "pytest-cov>=5",
+  "pytest-xdist>=3.6",
+  "pytest-timeout>=2.3",
+  "pytest-socket>=0.7",
+  "pip-audit>=2.7",
+  "fakeredis[lua]>=2.26",
+  "moto[s3]>=5.2,<6",
+  "boto3-stubs[s3]>=1.36,<2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["kyapehnu"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "ANN"]
+ignore = ["ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN", "E501"]
+"kyapehnu/migrations/*" = ["ANN"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = ["kyapehnu.migrations.*"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["rembg.*", "imagehash.*", "pillow_heif.*", "authlib.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "live: calls the configured real LLM provider (opt-in: uv run pytest -m live)",
+  "slow: long-running tests, excluded from the fast loop",
+  "integration: needs a real Valkey (KYAPEHNU_TEST_VALKEY_URL), skipped when it is unset",
+]
+addopts = "-m 'not live'"
+timeout = 60
+
+[tool.coverage.run]
+source = ["kyapehnu"]

@@ -1,0 +1,15 @@
+# Development overrides:  docker compose -f compose.yaml -f compose.dev.yaml up -d --build --wait
+#   - Valkey opened on 127.0.0.1:6379 for a backend running on the host (`make dev` starts only Valkey this way).
+#   - The backend opened directly on 127.0.0.1:8000 (KYAPEHNU_DEV_API_PORT changes it) (raw API, /docs) with the Google-less dev sign-in
+#     (POST /api/auth/dev-login {"email"}). Never use this file for an instance anyone else can reach.
+services:
+  valkey:
+    ports:
+      - "127.0.0.1:6379:6379"
+    networks: [store, edge]  # a container only on an internal network cannot publish a port
+  backend:
+    ports:
+      - "127.0.0.1:${KYAPEHNU_DEV_API_PORT:-8000}:8000"
+    environment:
+      KYAPEHNU_DEV_LOGIN: "1"
+      KYAPEHNU_DOCS_ENABLED: "true"

@@ -1,0 +1,96 @@
+# The Kya Pehnu stack: docker compose up -d --build --wait   (Docker Compose 2.23 or newer, see README)
+name: kyapehnu
+
+services:
+  valkey:
+    image: valkey/valkey:8.1-alpine@sha256:081c2f5cb575efc901aa80ff9cdbd1ec6a301682fd35e1ebb4b0990a4a4a8507
+    user: valkey
+    secrets: [valkey_password]
+    entrypoint: ["/bin/sh", "-c"]
+    # Exactly one list element: compose would split a plain string into words and break `sh -c`. The password is read
+    # from the secret file (the file has no trailing newline, so `read` would report failure): only the path is in
+    # the process arguments, never the password.
+    command:
+      - >-
+        p=$$(cat /run/secrets/valkey_password)
+        && case "$$p" in *[!A-Za-z0-9]*) echo "KYAPEHNU_VALKEY_PASSWORD: letters and digits only" >&2; exit 1;; esac
+        && printf 'requirepass "%s"\nsave ""\nappendonly no\nmaxmemory 128mb\nmaxmemory-policy volatile-lru\n' "$$p" > /tmp/valkey.conf
+        && exec valkey-server /tmp/valkey.conf
+    healthcheck:
+      # valkey-cli 8.1 reads the password from REDISCLI_AUTH; VALKEYCLI_AUTH is the name newer versions use.
+      test: ["CMD-SHELL", "p=$$(cat /run/secrets/valkey_password); REDISCLI_AUTH=$$p VALKEYCLI_AUTH=$$p valkey-cli ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+    networks: [store]
+
+  backend:
+    build: services/backend
+    environment:
+      KYAPEHNU_DATA_DIR: /data
+      KYAPEHNU_PUBLIC_URL: ${KYAPEHNU_PUBLIC_URL:-http://localhost:${KYAPEHNU_PORT:-8080}}
+      KYAPEHNU_VALKEY_URL: redis://valkey:6379/0
+      KYAPEHNU_VALKEY_PASSWORD: ${KYAPEHNU_VALKEY_PASSWORD:?set KYAPEHNU_VALKEY_PASSWORD in .env (openssl rand -hex 32)}
+      # Email-only sign-in for your own computer (no Google needed). Loopback address only: the app refuses to start
+      # with it on any other KYAPEHNU_PUBLIC_URL. Set it to 0 (and fill in the Google values) to put the app online.
+      KYAPEHNU_DEV_LOGIN: ${KYAPEHNU_DEV_LOGIN:-1}
+      KYAPEHNU_GOOGLE_CLIENT_ID: ${KYAPEHNU_GOOGLE_CLIENT_ID:-}
+      KYAPEHNU_GOOGLE_CLIENT_SECRET: ${KYAPEHNU_GOOGLE_CLIENT_SECRET:-}
+      # Empty means "not set here": the app ignores empty values, and a value set here locks the AI form in the app.
+      KYAPEHNU_LLM_PROVIDER: ${KYAPEHNU_LLM_PROVIDER:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      KYAPEHNU_ANTHROPIC_MODEL: ${KYAPEHNU_ANTHROPIC_MODEL:-}
+      KYAPEHNU_OPENAI_BASE_URL: ${KYAPEHNU_OPENAI_BASE_URL:-}
+      KYAPEHNU_OPENAI_API_KEY: ${KYAPEHNU_OPENAI_API_KEY:-}
+      KYAPEHNU_OPENAI_MODEL: ${KYAPEHNU_OPENAI_MODEL:-}
+      # Empty means the pictures stay on the data volume. With a bucket they live in S3, reached through the
+      # instance role (no key in this file); the metadata retries cover the first call after a container start.
+      KYAPEHNU_FILES_BUCKET: ${KYAPEHNU_FILES_BUCKET:-}
+      KYAPEHNU_FILES_REGION: ${KYAPEHNU_FILES_REGION:-}
+      KYAPEHNU_SWEEP_MAX_DELETES: ${KYAPEHNU_SWEEP_MAX_DELETES:-}
+      AWS_METADATA_SERVICE_NUM_ATTEMPTS: "3"
+      # The chat reads the clock as local time (today, the hour, a festival by day or by night): the server's
+      # zone must be the wearer's, not UTC.
+      TZ: ${TZ:-Asia/Kolkata}
+    volumes:
+      - kyapehnu-data:/data
+    networks: [edge, store]
+    depends_on:
+      valkey:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/readyz', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 60s
+    restart: unless-stopped
+
+  frontend:
+    build: services/frontend
+    ports:
+      - "127.0.0.1:${KYAPEHNU_PORT:-8080}:8080"
+    networks: [edge]
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    restart: unless-stopped
+
+secrets:
+  valkey_password:
+    environment: KYAPEHNU_VALKEY_PASSWORD
+
+volumes:
+  kyapehnu-data: {}
+
+networks:
+  edge: {}
+  store:
+    internal: true

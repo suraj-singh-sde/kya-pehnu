@@ -1,0 +1,417 @@
+/* Outfits, stylist, add items and account views. */
+
+/* The outfit laid flat (the collage): each piece in its slot; a just-swapped piece drops in. */
+.lay { position: relative; aspect-ratio: 5 / 4; max-width: 100%; background: var(--inside); }
+.lay > div { position: absolute; }
+.lay .pic, .lay img { width: 100%; height: auto; }
+.s-main { left: 30%; top: 6%; width: 40%; z-index: 2; }
+.s-bottom { left: 6%; top: 16%; width: 32%; }
+.s-feet { right: 5%; bottom: 8%; width: 24%; }
+.s-extra { right: 9%; top: 9%; width: 15%; }
+.s-bag { left: 8%; bottom: 6%; width: 18%; }
+.s-more { left: 36%; bottom: 6%; width: 18%; }
+.s-more2 { right: 8%; top: 30%; width: 14%; }
+.s-more3 { right: 8%; top: 50%; width: 13%; }
+.s-more4 { left: 6%; top: 58%; width: 13%; }
+.lay .new { animation: drop .5s var(--ease); }
+@keyframes drop { from { opacity: 0; translate: 0 -16px; rotate: -8deg; } }
+
+/* Stylist: a rail of chats and saved looks beside the conversation, the ask bar at the bottom. The looks the stylist
+   proposes are the page's pictures: a numbered frame each, the pieces under it, one line of why. On a phone the rail is
+   a drawer and the looks swipe sideways. */
+.studio { display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: 44px; min-height: calc(100dvh - 132px); }
+.convo { display: flex; flex-direction: column; min-width: 0; }
+.st-head { display: flex; align-items: flex-start; gap: 10px; }
+.st-head > div { margin-right: auto; min-width: 0; }
+.st-head .ph { display: none; }
+.today { margin: 6px 0 0; max-width: 60ch; font-size: 14px; line-height: 1.4; color: var(--muted); text-wrap: pretty; }
+.today .lnk { color: inherit; }
+
+.rail { display: flex; flex-direction: column; gap: 8px; align-self: start; position: sticky; top: 90px; max-height: calc(100dvh - 120px); overflow-y: auto; scrollbar-width: thin; padding: 2px 6px 2px 2px; }
+.rail-new { display: flex; justify-content: center; text-decoration: none; }
+.rail-h { margin: 14px 0 2px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+.chats { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.chats li { position: relative; }
+.chats a { display: block; padding: 8px 32px 8px 10px; border-radius: 10px; color: var(--ink); text-decoration: none; transition: background .15s; }
+.chats a:hover { background: var(--surface); }
+.chats a.active { background: var(--surface); box-shadow: inset 3px 0 0 var(--gold); }
+.chats .title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 14px; line-height: 1.3; }
+.chats time { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+.chats .x { position: absolute; top: 7px; right: 5px; width: 26px; height: 26px; font-size: 15px; opacity: .6; }
+.chats .x:hover { opacity: 1; }
+.rail-scrim { display: none; }
+.saved { display: grid; gap: 8px; }
+.keeps { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.keep { display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 10px; align-items: start; padding: 8px; border-radius: 12px; background: var(--surface); }
+.keep-left { display: block; min-width: 0; }
+.keep-pic { width: 100%; max-width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 8px; background: var(--inside); }
+.keep-body { display: grid; gap: 3px; min-width: 0; }
+.keep-name { font-size: 13.5px; font-weight: 600; line-height: 1.25; color: var(--ink); text-decoration: none; }
+.keep-name:hover { text-decoration: underline; }
+.keep-body .sub { margin: 0; font-size: 12px; }
+
+/* the thread: the person's ask on the right, the stylist's turn beside its mark (.msg.bot is the onboarding chat's) */
+.thread { display: flex; flex-direction: column; gap: 20px; margin-top: 26px; }
+.msg.me { align-self: flex-end; max-width: min(80%, 560px); margin: 0; padding: 10px 14px; border-radius: 18px 18px 4px 18px; background: var(--steel); color: var(--on-steel); white-space: pre-wrap; overflow-wrap: anywhere; animation: rise .35s var(--ease); }
+@keyframes rise { from { opacity: 0; translate: 0 8px; } }
+.turn { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: start; animation: rise .35s var(--ease); }
+.mark { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--steel); color: var(--on-steel); }
+.mark svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.turn-body { display: grid; gap: 12px; min-width: 0; padding-top: 4px; }
+.turn-body .say { margin: 0; max-width: 68ch; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+.turn-body .okline { font-size: 13px; }
+.turn-body .notice { justify-self: start; }
+.steps { display: flex; flex-wrap: wrap; gap: 4px 14px; list-style: none; margin: 0; padding: 0; }
+.step { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--muted); animation: rise .3s var(--ease); }
+.step.bad { color: var(--warn); }
+.step::before { content: ""; flex: none; width: 5px; height: 9px; margin: 0 3px 3px 4px; border: solid var(--ok); border-width: 0 2px 2px 0; rotate: 45deg; }
+.step.bad::before { width: 9px; height: 9px; margin: 0 2px 0 2px; border: 0; rotate: 0deg; background: linear-gradient(45deg, transparent 42%, currentColor 42% 58%, transparent 58%), linear-gradient(-45deg, transparent 42%, currentColor 42% 58%, transparent 58%); }
+.typing { display: flex; align-items: center; gap: 4px; min-height: 28px; font-size: 13px; color: var(--muted); }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--steel-hi); animation: blink 1.2s ease-in-out calc(var(--k, 0) * .2s) infinite; }
+.typing span { margin-left: 8px; }
+@keyframes blink { 0%, 80%, 100% { opacity: .3; translate: 0 0; } 40% { opacity: 1; translate: 0 -3px; } }
+.strip { display: flex; gap: 12px; padding: 12px; border-radius: 12px; background: var(--inside); overflow-x: auto; }
+.strip figure { flex: 0 0 62px; margin: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 5px; font-size: 11.5px; line-height: 1.2; text-align: center; }
+.ask { display: grid; gap: 8px; padding: 12px; border-radius: 12px; border: 1px dashed var(--steel-hi); }
+.ask span { color: var(--muted); }
+
+/* the looks: numbered frames in a row, each with its pieces, why it works, Wear this and a rating */
+.looks { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin: 4px 0; }
+.look { display: flex; flex-direction: column; gap: 12px; min-width: 0; animation: deal .55s var(--ease) calc(var(--i, 0) * 90ms) both; }
+@keyframes deal { from { opacity: 0; translate: 0 16px; rotate: -1.5deg; } }
+.look-pic { position: relative; overflow: hidden; aspect-ratio: 2 / 3; border-radius: 16px; background: var(--inside); }
+.look-pic > * { position: absolute; inset: 0; }
+.look-pic .lay { aspect-ratio: auto; background: none; }
+.look-img { width: 100%; height: 100%; object-fit: cover; transition: scale .7s var(--ease); }
+.look:hover .look-img { scale: 1.03; }
+.zoomable { cursor: zoom-in; }
+/* a mannequin picture opened full size: the top layer, dimmed page behind, tap anywhere to close */
+.enlarged { position: fixed; inset: 0; margin: auto; padding: 0; border: 0; border-radius: 14px; background: none; max-width: 100vw; max-height: 100dvh; cursor: zoom-out; }
+.enlarged::backdrop { background: rgb(0 0 0 / .82); backdrop-filter: blur(4px); }
+.enlarged img { display: block; max-width: min(92vw, 900px); max-height: 92dvh; object-fit: contain; border-radius: 14px; }
+.enlarged[open] img { animation: fade .25s; }
+.look-n { inset: auto; left: 12px; top: 2px; z-index: 1; font-size: 46px; font-weight: 300; font-stretch: 125%; line-height: 1; letter-spacing: -.02em; color: var(--ink); opacity: .5; }
+.look-pic > .btn { inset: auto auto 10px 10px; }
+.look-pic > .sub, .look-pic > .err { inset: auto 10px 10px; margin: 0; padding: 6px 10px; border-radius: 10px; background: color-mix(in srgb, var(--surface) 90%, transparent); font-size: 12.5px; }
+/* the chat under a mannequin picture: each ask redraws it; the asks stack on the right like the person's own lines */
+.look-img { animation: fade .45s; }
+.mq-chat { display: grid; gap: 8px; }
+.mq-asks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; justify-items: end; }
+.mq-asks li { max-width: 90%; padding: 5px 11px; border-radius: 14px 14px 4px 14px; background: var(--steel); color: var(--on-steel); font-size: 13px; opacity: .55; animation: rise .3s var(--ease); }
+.mq-asks li.now { opacity: 1; }
+.mq-back { justify-self: end; font-size: 12.5px; color: var(--muted); }
+.mq-chat .typing { min-height: 24px; }
+.mq-ask { display: flex; gap: 6px; align-items: center; padding: 3px 3px 3px 12px; border-radius: 999px; background: var(--ground); border: 1px solid transparent; transition: border-color .15s; }
+.mq-ask:focus-within { border-color: color-mix(in srgb, var(--steel) 55%, var(--line)); }
+.mq-ask .askin { min-height: 34px; font-size: 14px; }
+.mq-ask .send { width: 32px; height: 32px; }
+.mq-ask .send svg { width: 17px; height: 17px; }
+.pieces { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.pieces li { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 10px; align-items: center; min-height: 36px; font-size: 14.5px; }
+.pieces .pic { width: 36px; height: 36px; object-fit: contain; }
+.pieces .swap { width: 32px; height: 32px; display: grid; place-items: center; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; transition: transform .25s var(--ease), border-color .15s; }
+.pieces .swap:hover { border-color: var(--ink); }
+.pieces .swap:active { transform: rotate(180deg); }
+.pieces .swap:disabled { opacity: .5; cursor: default; }
+.pieces .swap svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.why { margin: 0; font-size: 14px; line-height: 1.45; color: var(--muted); }
+.look .hint { margin: 0; font-size: 13px; color: var(--muted); }
+.look .err { margin: 0; }
+.look-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; }
+.done { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--ok); margin-top: auto; }
+
+/* which look is in view, under the row on a phone: a dot per look, the open one a gold bar (hidden on desktop) */
+.dots { display: none; }
+.dots button { width: 24px; height: 24px; display: grid; place-items: center; padding: 0; border: 0; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.dots button::before { content: ""; width: 7px; height: 7px; border-radius: 999px; background: var(--line); transition: width .3s var(--ease), background .3s; }
+.dots button[aria-current="true"]::before { width: 18px; background: var(--gold); }
+
+/* the ask bar: the occasion and setting as one row of options, then the question and Send. It stays at the bottom. */
+.askbar { position: sticky; z-index: 5; bottom: calc(var(--navh) + 10px); margin-top: auto; padding-top: 24px; background: linear-gradient(transparent, var(--ground) 24px); }
+.askbar-in { display: grid; gap: 6px; padding: 10px 10px 10px 14px; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 18px 40px -24px var(--shadow); transition: box-shadow .25s, border-color .25s; }
+.askbar-in:focus-within { border-color: color-mix(in srgb, var(--steel) 55%, var(--line)); box-shadow: 0 22px 44px -22px var(--shadow); }
+.opts { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.opt { position: relative; }
+.opt input { position: absolute; opacity: 0; pointer-events: none; }
+.opt span { display: inline-block; padding: 6px 11px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--muted); background: var(--ground); cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: background .2s, color .2s; }
+.opt:hover span { color: var(--ink); }
+.opt input:checked + span { background: var(--steel); color: var(--on-steel); }
+.opt input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 2px; }
+.opt-gap { width: 1px; height: 18px; margin: 0 4px; background: var(--line); }
+/* the day: "Today" and a native date picker in one pill; a chosen day turns it the picked colour like an option */
+.opt-when { display: inline-flex; align-items: center; gap: 2px; min-height: 29px; padding: 0 4px 0 11px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--muted); background: var(--ground); cursor: pointer; }
+.opt-when input { border: 0; padding: 4px 6px; background: none; color: inherit; font: inherit; color-scheme: light dark; cursor: pointer; }
+.opt-when.on { background: var(--steel); color: var(--on-steel); }
+.opt-when:focus-within { outline: 2px solid var(--ink); outline-offset: 2px; }
+.askrow { display: flex; gap: 8px; align-items: center; }
+.askin { flex: 1; min-width: 0; min-height: 40px; padding: 6px 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: 16px; }
+.askin:focus { outline: 0; }
+.askin::placeholder { color: var(--muted); opacity: .75; }
+.send { flex: none; width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: var(--gold); color: var(--gold-ink); cursor: pointer; transition: transform .15s var(--ease), opacity .2s; }
+.send:active { transform: scale(.9); }
+.send:disabled { opacity: .4; cursor: default; }
+.send svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.send.busy { opacity: 1; }
+.send.busy svg { animation: spin 1s linear infinite; }
+@keyframes spin { to { rotate: 360deg; } }
+.askbar .notice, .askbar .err { margin: 8px 0 0; }
+
+/* a new chat: the question, large, and a few asks to start from */
+.st-hero { flex: 1; display: grid; align-content: center; justify-items: start; gap: 14px; padding: 40px 0 30px; }
+.st-hero h2 { margin: 0; font-size: clamp(30px, 4vw, 44px); font-weight: 600; font-stretch: 112%; letter-spacing: -.015em; line-height: 1.05; text-wrap: balance; animation: fade-up .5s var(--ease) both; }
+.st-hero p { margin: 0; max-width: 46ch; color: var(--muted); text-wrap: pretty; animation: fade-up .5s var(--ease) .08s both; }
+.starts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.starts button { padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: inherit; font-size: 14px; cursor: pointer; animation: fade-up .5s var(--ease) calc(.16s + var(--i, 0) * 60ms) both; transition: border-color .15s, transform .15s var(--ease); }
+.starts button:hover { border-color: var(--ink); }
+.starts button:active { transform: scale(.97); }
+
+/* the onboarding chat (Welcome) */
+.composer { position: sticky; bottom: var(--navh); max-width: 680px; display: grid; gap: 10px; padding: 26px 0 14px; background: linear-gradient(transparent, var(--ground) 26px); }
+.composer form { display: flex; gap: 8px; }
+.sugs { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* add items */
+.drop { display: grid; justify-items: center; gap: 10px; margin-top: 20px; padding: 36px 20px; text-align: center; border-radius: 16px; border: 1.5px dashed var(--steel-hi); background: var(--surface); cursor: pointer; transition: border-color .2s, background .2s, transform .2s var(--ease); }
+.drop:hover { border-color: var(--steel); }
+.drop.over { border-color: var(--gold); background: var(--floor); transform: scale(1.01); }
+.drop.over svg { animation: pop .4s var(--ease); }
+.drop svg { width: 34px; height: 34px; fill: none; stroke: var(--muted); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.queue { display: grid; gap: 12px; margin-top: 18px; max-width: 760px; }
+.job { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; align-items: start; padding: 12px; border-radius: 14px; background: var(--surface); border: 1px solid var(--line); animation: rise .35s var(--ease); }
+.job.sel { outline: 2px solid var(--gold); }
+/* a piece whose clean picture is still being made: a light sweeps its photo, no buttons yet */
+.job.cleaning .photo { position: relative; }
+.job.cleaning .photo::after { content: ""; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / .45) 50%, transparent 70%); translate: -100% 0; animation: sweep 1.6s var(--ease) infinite; }
+.job.cleaning .typing { align-self: center; }
+.job.rejected .photo img { opacity: .55; filter: grayscale(.5); }
+.job.rejected .notice { margin: 0; }
+.photo { position: relative; aspect-ratio: 1; max-width: 100%; display: grid; place-items: center; border-radius: 10px; overflow: hidden; background: var(--inside); }
+.photo img { width: 100%; height: 100%; object-fit: contain; }
+.jb { display: grid; gap: 8px; min-width: 0; }
+.jb .st { color: var(--muted); font-size: 13.5px; }
+.bar { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--gold); transition: width 1.1s linear; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* welcome (onboarding) */
+.welcome { max-width: 680px; margin: 0 auto; padding: 40px clamp(16px, 4vw, 48px) 60px; min-height: 100dvh; display: flex; flex-direction: column; }
+.welcome .thread { flex: 1; }
+.welcome .composer form { flex-wrap: wrap; }
+.welcome .composer form .in { flex: 1 1 200px; }
+
+/* Account: who you are and how the almirah looks on one side, the stylist's and the mannequin's notes on the other.
+   Filled fields on the ground colour, finish samples that look like lacquer, one save bar that rises when there is
+   something to save. */
+.acct { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; margin-top: 6px; }
+.acct-side { display: grid; gap: 16px; position: sticky; top: 90px; }
+.acct-main { display: grid; gap: 16px; min-width: 0; }
+.acct-wide { grid-column: 1 / -1; }
+.sec { display: grid; gap: 12px; padding: 20px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); animation: fade-up .45s var(--ease) both; }
+.acct-main .sec:nth-child(2) { animation-delay: 60ms; } .acct-main .sec:nth-child(3) { animation-delay: 120ms; }
+.sec h2 { font-size: 17px; }
+.sec > .sub { margin: -6px 0 0; font-size: 13.5px; }
+.who { justify-items: center; text-align: center; gap: 4px; padding-top: 26px; }
+.who .avatar { width: 72px; height: 72px; margin-bottom: 8px; font-size: 28px; background: linear-gradient(145deg, var(--steel-hi), var(--steel-deep)); box-shadow: 0 12px 24px -14px var(--shadow); }
+.who h1 { font-size: 24px; }
+.who .mail { margin: 0; font-size: 13px; color: var(--muted); }
+.who .who-line { margin: 4px 0 0; font-size: 14px; color: var(--muted); text-wrap: balance; }
+.who .btn { margin-top: 10px; }
+.avatar { border-radius: 50%; display: grid; place-items: center; background: var(--steel); color: var(--on-steel); font-weight: 700; object-fit: cover; flex: none; }
+.fins { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.fin { display: grid; justify-items: center; gap: 6px; padding: 6px 4px 8px; border-radius: 12px; border: 2px solid transparent; background: none; color: var(--ink); font: inherit; font-size: 12.5px; cursor: pointer; transition: border-color .2s, transform .15s var(--ease); }
+.fin:active { transform: scale(.95); }
+.fin:disabled { cursor: default; }
+.fin i { position: relative; width: 64px; height: 44px; border-radius: 8px; background: linear-gradient(135deg, color-mix(in srgb, var(--s) 72%, white), var(--s) 42%, color-mix(in srgb, var(--s) 70%, black)); box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), 0 8px 14px -9px rgb(0 0 0 / .7); }
+.fin i::after { content: ""; position: absolute; right: 12px; top: 50%; width: 3px; height: 16px; margin-top: -8px; border-radius: 2px; background: var(--brass-hi, #c9ad74); box-shadow: 1px 0 1px rgb(0 0 0 / .3); }
+.fin[aria-pressed="true"] { border-color: var(--gold); }
+.switch { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid var(--line); cursor: pointer; }
+.frame-row { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 12px; align-items: center; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+.frame-row img { width: 56px; aspect-ratio: 1; object-fit: cover; border-radius: 3px; border: 4px solid var(--wood); background: var(--inside); }
+.frame-row .row { gap: 14px; margin-top: 4px; }
+.frame-row .lnk { font-size: 13px; }
+.frame-row .okline { font-size: 12.5px; }
+.flds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; }
+.flds.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.fld { display: grid; gap: 5px; min-width: 0; }
+.fld.wide { grid-column: 1 / -1; }
+.fld label { font-size: 13px; color: var(--muted); }
+.fld .in { background: var(--ground); border-color: transparent; transition: border-color .15s, background .15s; }
+.fld .in:focus { outline: 0; border-color: var(--steel); background: var(--surface); }
+.fld .ta { resize: vertical; min-height: 76px; line-height: 1.45; }
+.unit { position: relative; }
+.unit span { position: absolute; right: 12px; top: 50%; translate: 0 -50%; font-size: 13px; color: var(--muted); pointer-events: none; }
+.colors { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; min-height: 40px; padding: 5px 6px; border-radius: 10px; background: var(--ground); border: 1px solid transparent; transition: border-color .15s, background .15s; }
+.colors:focus-within { border-color: var(--steel); background: var(--surface); }
+.color { display: inline-flex; align-items: center; gap: 6px; padding: 3px 5px 3px 9px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 13.5px; animation: rise .25s var(--ease); }
+.color i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--gar-edge); }
+.color button { width: 20px; height: 20px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted); font: inherit; font-size: 15px; line-height: 1; cursor: pointer; }
+.color button:hover { color: var(--ink); background: var(--ground); }
+.colors input { flex: 1; min-width: 120px; min-height: 28px; padding: 2px 6px; border: 0; background: none; color: var(--ink); font: inherit; }
+.colors input:focus { outline: 0; }
+.colors input::placeholder { color: var(--muted); opacity: .7; }
+.savebar { position: sticky; z-index: 5; bottom: calc(var(--navh) + 12px); display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 18px; border-radius: 999px; background: var(--ink); color: var(--ground); box-shadow: 0 18px 40px -18px var(--shadow); translate: 0 20px; opacity: 0; visibility: hidden; transition: translate .3s var(--ease), opacity .25s, visibility 0s .3s; }
+.savebar.on { translate: 0 0; opacity: 1; visibility: visible; transition: translate .3s var(--ease), opacity .25s; }
+.savebar span { margin-right: auto; font-weight: 600; font-size: 14px; }
+.savebar .btn.ghost { color: inherit; border-color: color-mix(in srgb, var(--ground) 35%, transparent); }
+
+@media (max-width: 760px) {
+  .mb { display: flex; }
+  /* stylist: the rail becomes a drawer, the ask bar is one row of options and the question, the looks are a lookbook */
+  .studio { display: block; min-height: calc(100dvh - 14px - var(--navh) - 24px); }
+  .convo { min-height: calc(100dvh - 14px - var(--navh) - 24px); }
+  .st-head .ph { display: grid; }
+  .st-head .mw-icon { text-decoration: none; }
+  .st-head h1 { font-size: 24px; font-weight: 600; font-stretch: 110%; letter-spacing: -.005em; }
+  .today { font-size: 13px; margin-top: 3px; }
+  .rail { position: fixed; z-index: 45; inset: 0 22% 0 0; top: 0; max-height: none; padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(var(--navh) + 16px); background: var(--surface); box-shadow: 0 0 60px rgb(0 0 0 / .3); visibility: hidden; transform: translateX(-100%); transition: transform .35s var(--ease), visibility 0s .35s; }
+  .rail.on { visibility: visible; transform: none; transition: transform .35s var(--ease); }
+  .rail-scrim { display: block; position: fixed; z-index: 44; inset: 0; background: var(--scrim); opacity: 0; visibility: hidden; transition: opacity .3s, visibility 0s .3s; }
+  .rail-scrim.on { opacity: 1; visibility: visible; transition: opacity .3s; }
+  .rail .keep { background: var(--ground); }
+  .chats a:hover, .chats a.active { background: var(--ground); }
+  /* the options fade out at the right edge to say the row scrolls; the row ends in blank space so the last one shows */
+  .opts { flex-wrap: nowrap; gap: 4px; overflow-x: auto; margin: 0 -8px 0 -12px; padding: 0 44px 0 12px; scrollbar-width: none; mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
+  .opts::-webkit-scrollbar { display: none; }
+  .opt { flex: none; }
+  .opt span { white-space: nowrap; padding: 7px 12px; font-size: 13px; }
+  .opt-gap { flex: none; }
+  .askbar { bottom: calc(var(--navh) + 6px); padding-top: 12px; }
+  .askbar-in { gap: 4px; border-radius: 22px; padding: 8px 8px 8px 12px; }
+  .askin, .send { min-height: 42px; }
+  .send { width: 42px; height: 42px; }
+  .turn { grid-template-columns: 24px minmax(0, 1fr); gap: 10px; }
+  .mark { width: 24px; height: 24px; }
+  .mark svg { width: 14px; height: 14px; }
+  .msg.me { max-width: 86%; }
+  .steps { gap: 2px 12px; }
+  /* the looks: a lookbook. One look is one page: the mannequin in a glossy frame, as tall as half the screen so the page
+     fits with its pieces, why it works and Wear this; the next page peeks in from the right; the dots under the row say
+     which page is open. The pieces sit in a row of tiles with the swap on the tile's corner. */
+  .looks { display: flex; gap: 12px; margin: 0 -16px 0 calc(-16px - 34px); padding: 4px 16px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 16px; scrollbar-width: none; overscroll-behavior-x: contain; }
+  .looks::-webkit-scrollbar { display: none; }
+  .look { flex: 0 0 min(100vw - 62px, max(236px, 30dvh)); gap: 8px; scroll-snap-align: start; }
+  .look-pic { border-radius: 18px; box-shadow: inset 0 1px 0 rgb(255 255 255 / .28), 0 26px 36px -28px var(--shadow); }
+  .look-pic::after { content: ""; position: absolute; inset: 0; z-index: 1; border-radius: inherit; background: linear-gradient(180deg, rgb(255 255 255 / .14), transparent 26%), linear-gradient(0deg, rgb(0 0 0 / .16), transparent 18%); pointer-events: none; }
+  .look-n { left: 10px; top: 0; z-index: 2; font-size: 40px; }
+  .dots { display: flex; justify-content: center; margin: -4px -16px 0 calc(-16px - 34px); }
+  .dots button { height: 16px; }
+  .look .mq-ask { padding: 2px 2px 2px 12px; }
+  .look .mq-ask .askin { min-height: 32px; padding: 4px 0; }
+  .look .mq-ask .send { width: 30px; height: 30px; }
+  /* the page ends where the ask bar sticks, so the last look is whole above it when the chat is scrolled to its end */
+  .app > main:has(> section > .studio) { padding-bottom: calc(var(--navh) + 6px); }
+  .pieces { display: flex; gap: 2px; margin: 0 -6px; padding: 0 6px; overflow-x: auto; scrollbar-width: none; }
+  .pieces::-webkit-scrollbar { display: none; }
+  .pieces li { position: relative; flex: 0 0 74px; display: grid; grid-template-columns: none; justify-items: center; align-content: start; gap: 4px; min-height: 0; padding-top: 4px; font-size: 11px; line-height: 1.2; text-align: center; }
+  .pieces .pic { width: 50px; height: 50px; padding: 4px; border-radius: 16px; background: var(--inside); box-shadow: inset 0 1px 0 rgb(255 255 255 / .35), inset 0 -1px 0 rgb(0 0 0 / .06); }
+  .pieces li > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .pieces li > span .pill { display: block; width: max-content; margin: 2px auto 0 !important; padding: 0 6px; font-size: 10px; }
+  .pieces .swap { position: absolute; top: 0; right: 6px; width: 24px; height: 24px; box-shadow: 0 3px 8px -2px var(--shadow); }
+  .pieces .swap svg { width: 13px; height: 13px; }
+  .why { font-size: 13.5px; }
+  .look-foot .btn { flex: 1; }
+  /* a new chat: the question, then the asks to start from hang from a steel rail as swing tags, each on its cord through
+     a brass eyelet. They drop in one after another and settle with a small swing; a tap swings the one tapped. */
+  .st-hero { padding: 16px 0 12px; gap: 12px; }
+  .st-hero h2 { font-size: 34px; }
+  .st-hero .starts { justify-self: stretch; position: relative; flex-wrap: nowrap; gap: 16px; margin: 14px -16px 0; padding: 34px 16px 22px; overflow-x: auto; scrollbar-width: none;
+    background: linear-gradient(180deg, transparent 7px, var(--rail-hi) 7px, var(--rail-lo) 11px, rgb(0 0 0 / .18) 11px, transparent 16px); }
+  .st-hero .starts::-webkit-scrollbar { display: none; }
+  .st-hero .starts button { --tilt: 0deg; position: relative; flex: none; width: 152px; min-height: 92px; padding: 22px 12px 12px; border-radius: 7px; font-size: 14px; line-height: 1.3; text-align: left; text-wrap: pretty; transform-origin: 50% -24px; rotate: var(--tilt);
+    background: linear-gradient(168deg, var(--surface), color-mix(in srgb, var(--surface) 88%, var(--ground))); box-shadow: inset 0 1px 0 rgb(255 255 255 / .45), 0 14px 22px -16px var(--shadow); animation: hang 1.1s var(--ease) calc(.25s + var(--i, 0) * 110ms) both; }
+  .st-hero .starts button:nth-child(4n+1) { --tilt: -1.8deg; } .st-hero .starts button:nth-child(4n+2) { --tilt: 1.3deg; } .st-hero .starts button:nth-child(4n+3) { --tilt: -.9deg; } .st-hero .starts button:nth-child(4n) { --tilt: 2deg; }
+  .st-hero .starts button:active { transform: none; rotate: calc(var(--tilt) + 2.5deg); transition: rotate .2s var(--ease); }
+  .st-hero .starts button::before { content: ""; position: absolute; left: 50%; top: -24px; width: 1px; height: 34px; background: var(--cord); }
+  .st-hero .starts button::after { content: ""; position: absolute; left: 50%; top: 7px; width: 7px; height: 7px; margin-left: -4.5px; border-radius: 50%; background: var(--ground); border: 1.5px solid var(--brass); box-shadow: inset 0 1px 1px rgb(0 0 0 / .25); }
+  @keyframes hang { from { opacity: 0; translate: 0 -30px; rotate: calc(var(--tilt) - 7deg); } 55% { rotate: calc(var(--tilt) + 3.5deg); } 80% { rotate: calc(var(--tilt) - 1.5deg); } to { rotate: var(--tilt); } }
+  /* account */
+  .acct { display: block; }
+  .acct-side { position: static; margin-bottom: 14px; }
+  .acct-main { gap: 12px; }
+  .sec { padding: 16px; border-radius: 16px; }
+  .flds, .flds.three { grid-template-columns: minmax(0, 1fr); }
+  .savebar { bottom: calc(var(--navh) + 8px); }
+  .job, .skeleton { grid-template-columns: 72px minmax(0, 1fr); }
+  .skeleton .ph { height: 72px; }
+}
+
+/* Sign-in: one centred card on the ground colour, nothing else on the page. */
+.signin { min-height: 100dvh; display: grid; place-items: center; align-content: center; gap: 18px; padding: 24px 16px; background: var(--ground); color: var(--ink); font-family: var(--font); }
+.signin-card { width: min(100%, 400px); display: grid; gap: 14px; padding: 32px 28px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 18px 40px -24px var(--shadow); text-align: center; }
+.signin-brand { display: grid; justify-items: center; gap: 10px; margin-bottom: 4px; }
+.signin-mark { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--steel); color: var(--on-steel); font-weight: 800; font-size: 26px; letter-spacing: -.02em; }
+.signin-brand .brand { justify-content: center; }
+.signin-brand .brand b { font-size: 22px; }
+.signin h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -.01em; }
+.signin-lead { margin: -6px 0 6px; color: var(--muted); }
+.signin-alert { margin: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--bad) 40%, transparent); background: color-mix(in srgb, var(--bad) 10%, transparent); color: var(--bad); font-size: 14px; text-align: left; }
+.signin-google { display: inline-flex; justify-content: center; align-items: center; gap: 12px; min-height: 46px; padding: 10px 18px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; transition: background .15s var(--ease), transform .15s var(--ease); }
+.signin-google:hover { background: color-mix(in srgb, var(--surface) 92%, var(--ink)); }
+.signin-google:active { transform: translateY(1px); }
+.signin-google:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.signin-note { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+.signin-foot { margin: 0; color: var(--muted); font-size: 13px; }
+
+/* Loading screen: brand and a thin moving bar, on the ground colour like the pages themselves. */
+.splash { min-height: 100dvh; display: grid; place-content: center; justify-items: center; gap: 18px; background: var(--ground); color: var(--ink); font-family: var(--font); }
+.splash .brand b { font-size: 26px; }
+.splash-bar { width: 120px; height: 3px; border-radius: 3px; background: var(--line); position: relative; overflow: hidden; }
+.splash-bar::after { content: ""; position: absolute; inset: 0; width: 40%; border-radius: 3px; background: var(--gold); animation: splash-slide 1.1s var(--ease) infinite; }
+@keyframes splash-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+@media (prefers-reduced-motion: reduce) { .splash-bar::after { animation: none; width: 100%; opacity: .5; } }
+
+/* Add items: one placeholder card per photo still being processed, and the count line above them. */
+.skeleton { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 12px; border-radius: 14px; border: 1px dashed var(--line); background: var(--surface); }
+.skeleton .ph { height: 96px; border-radius: 10px; background: var(--line); }
+.skeleton .ln { height: 12px; border-radius: 6px; background: var(--line); margin-bottom: 10px; }
+.skeleton .ln.w2 { width: 60%; } .skeleton .ln.w3 { width: 40%; }
+.skeleton .ph, .skeleton .ln { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .skeleton .ph, .skeleton .ln { animation: none; } }
+.drop.busy { opacity: .55; pointer-events: none; }
+
+/* A piece, edited in full: picture and status on the left, tags, where it was bought and its history on the right.
+   The tag form's own fields take the app's filled look and the almirah's steel as their accent. */
+.item-page { display: grid; gap: 18px; }
+.item-head .back { display: inline-block; margin-bottom: 10px; font-size: 13.5px; color: var(--muted); }
+.item-head .sub { margin-top: 4px; }
+.item-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 24px; align-items: start; }
+.item-side { display: grid; gap: 12px; position: sticky; top: 90px; }
+.item-side .hero { margin: 0; animation: fade-up .5s var(--ease) both; }
+.item-side .hero .pic { width: min(220px, 70%); }
+.item-side .row .lnk { font-size: 13.5px; color: var(--muted); }
+.sibs .row a img { width: 56px; height: 56px; object-fit: contain; border-radius: 10px; background: var(--inside); transition: transform .2s var(--ease); }
+.sibs .row a:hover img { transform: translateY(-2px); }
+.item-main { display: grid; gap: 16px; min-width: 0; }
+.item-main .sec:nth-child(2) { animation-delay: 60ms; }
+.item-page input[data-slot=input], .item-page textarea[data-slot=textarea], .item-page select { min-height: 40px; padding: 8px 12px; border-radius: 10px; border: 1px solid transparent; background: var(--ground); color: var(--ink); font: inherit; font-size: 15px; box-shadow: none; transition: border-color .15s, background .15s; }
+.item-page input[data-slot=input]:focus, .item-page textarea[data-slot=textarea]:focus, .item-page select:focus { outline: 0; border-color: var(--steel); background: var(--surface); }
+.item-page input[type=range], .item-page input[type=checkbox], .item-page input[type=radio] { accent-color: var(--steel); }
+.item-page label[data-slot=label] { font-size: 13px; color: var(--muted); }
+.btn.danger { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, transparent); }
+.btn.danger:hover { background: color-mix(in srgb, var(--bad) 8%, transparent); }
+.wears { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.wears li { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 10px; font-size: 14px; }
+.wears time { color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* Nothing at this address */
+.lost { min-height: 50vh; display: grid; align-content: center; justify-items: start; gap: 12px; }
+.lost h2 { margin: 0; font-size: clamp(28px, 4vw, 40px); font-weight: 600; font-stretch: 112%; letter-spacing: -.015em; animation: fade-up .5s var(--ease) both; }
+.lost p { margin: 0; color: var(--muted); animation: fade-up .5s var(--ease) .08s both; }
+.lost .btn { text-decoration: none; animation: fade-up .5s var(--ease) .16s both; }
+
+/* Sign-in: the closed almirah stands beside the card and gets the same entrance as on the wardrobe page */
+.signin { grid-template-columns: auto minmax(0, 400px); justify-content: center; column-gap: 64px; }
+.signin-scene { --cabh: 400px; --cabw: 236px; position: relative; width: var(--cabw); margin-bottom: 26px; }
+.signin-scene .cab { width: var(--cabw); height: var(--cabh); }
+.signin-scene .handle { height: calc(var(--cabh) * .17); }
+.signin-scene::after { content: ""; position: absolute; left: 50%; bottom: -24px; width: 106%; height: 16px; translate: -50% 0; border-radius: 50%; background: radial-gradient(closest-side, var(--shadow), transparent); }
+.signin-foot { grid-column: 1 / -1; }
+@media (max-width: 760px) {
+  .item-grid { grid-template-columns: minmax(0, 1fr); }
+  .item-side { position: static; }
+  .item-side .hero .pic { width: min(200px, 56%); }
+  .signin { grid-template-columns: minmax(0, 1fr); row-gap: 10px; }
+  .signin-scene { --cabh: 236px; --cabw: 140px; margin: 0 auto 30px; }
+  .signin-scene .plate { padding: 1px 6px; font-size: 10px; }
+}

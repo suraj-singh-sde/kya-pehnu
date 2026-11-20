@@ -1,0 +1,16 @@
+data/
+.env
+config.yaml
+__pycache__/
+*.pyc
+.venv/
+.venv-image/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+node_modules/
+services/frontend/dist/
+.DS_Store
+.playwright-mcp/
+db-copy/
