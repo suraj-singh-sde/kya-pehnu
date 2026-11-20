@@ -62,8 +62,8 @@ The model must be able to read images. **Settings → AI provider** checks this 
 **You need:** Docker Desktop (or Docker Engine) with Compose 2.23+, and about 3 GB of disk (the background-removal model is baked into the image).
 
 ```sh
-git clone https://github.com/<your-user>/kyapehnu.git
-cd kyapehnu
+git clone https://github.com/suraj-singh-sde/kya-pehnu.git
+cd kya-pehnu
 ./setup.sh                              # writes .env with a random Valkey password
 docker compose up -d --build --wait     # first build takes a few minutes
 ```
