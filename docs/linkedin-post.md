@@ -11,4 +11,4 @@ Bring your own key. No hosted service, no subscription. `docker compose up`, pas
 
 Repo: <link>   #opensource #genai #docker #fashiontech
 
-Images to attach: docs/screenshots/01-signin.png, 03-almirah.png, 04-byok.png
+Images to attach: docs/screenshots/desktop-02-almirah.png (hero), desktop-01-signin.png, desktop-03-byok.png; phone: 01-signin, 03-almirah, 04-byok.
