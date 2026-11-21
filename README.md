@@ -16,9 +16,9 @@ Self-hosted · Bring your own AI key · MIT licensed
 
 ## Demo
 
-[![Watch the demo](docs/screenshots/desktop-08-stylist-outfits.png)](https://github.com/suraj-singh-sde/kya-pehnu/blob/main/docs/demo/kya-pehnu.mp4)
+[![Kya Pehnu demo](docs/demo/kya-pehnu.gif)](https://github.com/suraj-singh-sde/kya-pehnu/blob/main/docs/demo/kya-pehnu.mp4)
 
-**[▶ Watch the demo video](https://github.com/suraj-singh-sde/kya-pehnu/blob/main/docs/demo/kya-pehnu.mp4)**: sign in, open the almirah, ask the stylist, get outfits on a mannequin.
+**[▶ Watch the full-quality video](https://github.com/suraj-singh-sde/kya-pehnu/blob/main/docs/demo/kya-pehnu.mp4)**: sign in, open the almirah, ask the stylist, get outfits on a mannequin.
 
 | Almirah | Stylist chat | Outfits on a mannequin |
 |---|---|---|
